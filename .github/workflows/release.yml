@@ -10,9 +10,9 @@ jobs:
       matrix:
         include:
           - target: Release_English
-          - target: Release_Chinese
-          - target: Release_Russian
-          - target: Release_TradChinese
+          # - target: Release_Chinese
+          # - target: Release_Russian
+          # - target: Release_TradChinese
     permissions:
       id-token: write
       attestations: write
