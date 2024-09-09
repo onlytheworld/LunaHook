@@ -4,115 +4,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_xp:
-    runs-on: windows-2019
-    strategy:
-      matrix:
-        include:
-          - target: Release_English_winxp
-          - target: Release_Chinese_winxp
-          - target: Release_Russian_winxp
-          - target: Release_TradChinese_winxp
-    permissions:
-      id-token: write
-      attestations: write
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup Windows 10 SDK
-        uses: GuillaumeFalourd/setup-windows10-sdk-action@v2
-        with:
-          sdk-version: 22621
-      - name: Install Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          architecture: x64
-
-      - name: Run build script
-        run: python build.py ${{ matrix.target }}
-
-      - name: Pack
-        run: python build.py pack
-
-      - name: Generate attestation for artifact
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-path: builds/${{ matrix.target }}.zip
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.target }}
-          path: builds/${{ matrix.target }}.zip
-      - name: loadversion
-        id: loadversion
-        run: python build.py loadversion | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
-      - name: Release LunaHook
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.loadversion.outputs.version }}
-          files: builds/${{ matrix.target }}.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
-  build_plugin:
-    runs-on: windows-latest
-    strategy:
-      matrix:
-        include:
-          - cmd: plg32
-            qtarch: win32_msvc2019
-            target: plugin32
-          - cmd: plg64
-            qtarch: win64_msvc2019_64
-            target: plugin64
-    permissions:
-      id-token: write
-      attestations: write
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Setup Windows 10 SDK
-        uses: GuillaumeFalourd/setup-windows10-sdk-action@v2
-        with:
-          sdk-version: 22621
-      
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v3.3.0
-        with:
-          version:      5.15.2
-          host:         windows
-          target:       desktop
-          arch:         ${{ matrix.qtarch }}
-          dir:          ${{ runner.temp }}
-          setup-python: true
-      - name: Run build script
-        run: python build.py ${{ matrix.cmd }}
-
-      - name: Pack
-        run: python build.py pack
-
-      - name: Generate attestation for artifact
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-path: builds/${{ matrix.target }}.zip
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.target }}
-          path: builds/${{ matrix.target }}.zip
-      - name: loadversion
-        id: loadversion
-        run: python build.py loadversion | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
-      - name: Release LunaHook
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.loadversion.outputs.version }}
-          files: builds/${{ matrix.target }}.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build_everylang:
     runs-on: windows-latest
     strategy:
@@ -162,4 +53,5 @@ jobs:
           automatic_release_tag: ${{ steps.loadversion.outputs.version }}
           files: builds/${{ matrix.target }}.zip
           repo_token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: false
   
