@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         language: [English]
-        bits: [32, 64]
+        bits: [32]
     permissions:
       id-token: write
       attestations: write
@@ -32,7 +32,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.language }}_${{matrix.bits}}
-          path: builds
+          path: ../builds/*.zip
   
   release:
     runs-on: windows-latest
