@@ -1,0 +1,50 @@
+name: Release-English
+
+on:
+  workflow_dispatch:
+
+jobs:
+  loadversion:
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.loadversion.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: loadversion
+        run: python build.py loadversion | Out-File -FilePath $Env:GITHUB_OUTPUT -Encoding utf8 -Append
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        language: [English]
+        bits: [32, 64]
+    permissions:
+      id-token: write
+      attestations: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: GuillaumeFalourd/setup-windows10-sdk-action@v2
+        with:
+          sdk-version: 22621
+      - run: python build.py build ${{ matrix.language }} ${{matrix.bits}}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.language }}_${{matrix.bits}}
+          path: builds
+  
+  release:
+    runs-on: windows-latest
+    needs: [build, loadversion]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: outputs
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.loadversion.outputs.version }}
+          files: outputs/**/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
