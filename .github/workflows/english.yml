@@ -29,7 +29,6 @@ jobs:
           sdk-version: 22621
       - run: python build.py build ${{ matrix.language }} ${{matrix.bits}}
       - run: python scripts/pack.py
-      - run: ls -R builds
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.language }}_${{matrix.bits}}
@@ -43,10 +42,10 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: outputs
-      - run: ls -R builds
+      - run: ls -R outputs
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.loadversion.outputs.version }}
-          files: outputs/*.zip
+          files: outputs/**/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
