@@ -28,11 +28,11 @@ jobs:
         with:
           sdk-version: 22621
       - run: python build.py build ${{ matrix.language }} ${{matrix.bits}}
-      - run: python scripts/pack.py
+      
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.language }}_${{matrix.bits}}
-          path: ../builds/*.zip
+          path: builds/*.dll
   
   release:
     runs-on: windows-latest
@@ -45,6 +45,6 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.loadversion.outputs.version }}
-          files: outputs/*.zip
+          files: outputs/**/*.dll
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
