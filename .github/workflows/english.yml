@@ -28,11 +28,12 @@ jobs:
         with:
           sdk-version: 22621
       - run: python build.py build ${{ matrix.language }} ${{matrix.bits}}
-      - run: for dir in builds/*/; do tar -cf "${dir%/}.tar" "$dir" --remove-files; done
+      - run: python scripts/pack.py
+      - run: ls -R builds
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.language }}_${{matrix.bits}}
-          path: builds/*
+          path: builds
   
   release:
     runs-on: windows-latest
@@ -42,9 +43,10 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: outputs
+      - run: ls -R builds
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.loadversion.outputs.version }}
-          files: outputs/*
+          files: outputs/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
